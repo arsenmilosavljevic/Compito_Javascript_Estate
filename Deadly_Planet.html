@@ -281,8 +281,6 @@
                 console.log("Menu button clicked"); // Debug
                 this.scene.start('Menu');
             }, this);
-
-            showPlayerNameInput();
         }
         return;
     }
@@ -512,11 +510,6 @@ function dannoGiocatore(player, proiettile) {
     if (lives <= 1) {
         player.destroy();
         gameOver = true;
-        player.setTint(0xff0000);
-        this.physics.pause();
-
-        // Chiedi il nome del giocatore
-        chiediNome();
     }
         lives--;
         proiettile.destroy();
@@ -611,78 +604,6 @@ function aggiornaClassifica() {
     handleBossDefeat.call(this, nomeGiocatore, punteggioGiocatore);
 }
 onBossDefeated.call(this);
-
-function chiediNome() {
-    // Crea un input field per il nome del giocatore
-    let inputDiv = document.createElement('div');
-    inputDiv.innerHTML = `<label for="playerName">Inserisci il tuo nome:</label>
-                          <input type="text" id="playerName" name="playerName">
-                          <button id="submitName">Invia</button>`;
-    document.body.appendChild(inputDiv);
-
-    // Aggiungi un event listener per salvare il nome e il punteggio
-    document.getElementById('submitName').addEventListener('click', function () {
-        let playerName = document.getElementById('playerName').value;
-        if (playerName) {
-            // Aggiorna la classifica
-            let punteggio = tempoInGioco || 0; // Puoi sostituire 'tempoInGioco' con il punteggio che preferisci
-            updateClassifica(playerName, punteggio);
-            
-            // Rimuovi l'input field dopo aver inviato il nome
-            inputDiv.remove();
-            
-            // Vai alla schermata del menu
-            scene.scene.start('Menu');
-        }
-    });
-
-}
-
-function showPlayerNameInput() {
-    // Crea un campo di input HTML e un bottone per inviare il nome
-    if (!playerNameInput) {
-        playerNameInput = document.createElement('input');
-        playerNameInput.setAttribute('type', 'text');
-        playerNameInput.setAttribute('placeholder', 'Inserisci il tuo nome');
-        playerNameInput.setAttribute('id', 'playerNameInput');
-        playerNameInput.style.position = 'absolute';
-        playerNameInput.style.top = '250px';  // Posizionamento relativo
-        playerNameInput.style.left = '180px';
-        playerNameInput.style.width = '200px';
-        playerNameInput.style.height = '40px';
-        playerNameInput.style.fontSize = '20px';
-        playerNameInput.style.zIndex = '100';  // Assicurarsi che sia sopra il canvas
-        document.body.appendChild(playerNameInput);
-
-        var submitButton = document.createElement('button');
-        submitButton.innerHTML = "Invia";
-        submitButton.setAttribute('id', 'submitButton');
-        submitButton.style.position = 'absolute';
-        submitButton.style.top = '300px';
-        submitButton.style.left = '220px';
-        submitButton.style.width = '100px';
-        submitButton.style.height = '40px';
-        submitButton.style.fontSize = '20px';
-        submitButton.style.zIndex = '100';
-        document.body.appendChild(submitButton);
-
-        submitButton.addEventListener('click', submitPlayerName);
-    }
-}
-
-function submitPlayerName() {
-    var playerName = document.getElementById('playerNameInput').value;
-    if (playerName) {
-        // Salva il nome nella classifica insieme al punteggio
-        updateClassifica(playerName, score);  // Puoi cambiare "score" con il punteggio effettivo
-
-        // Rimuovi il campo input e il bottone dopo l'invio
-        document.getElementById('playerNameInput').remove();
-        document.getElementById('submitButton').remove();
-
-        playerNameInput = null;  // Resetta la variabile per poterlo ricreare alla prossima partita
-    }
-}
 
 
 
