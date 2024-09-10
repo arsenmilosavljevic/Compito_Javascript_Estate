@@ -12,6 +12,7 @@
         }
     </style>
 </head>
+
 <body>
     <script type="text/javascript">
         var scene1 = {
@@ -23,11 +24,6 @@
             preload: preloadMenu,
             create: createMenu,
             update: updateMenu
-        }
-        var Classifica = {
-            preload: preloadClassifica,
-            create: createClassifica,
-            update: updateClassifica
         }
         var config = {
             type: Phaser.AUTO,
@@ -77,36 +73,19 @@
         var tempoInGioco;
         var tempoInGiocoText;
 
-
+        let inputText = '';  // Variabile per tenere traccia del nome inserito
+        let nameText;
+        let startButton;
 
 
         var game = new Phaser.Game(config);
         game.scene.add("Menu", Menu);
         game.scene.add("scene1", scene1);
-        game.scene.add("Classifica", Classifica);
         game.scene.start("Menu");
         function preloadMenu() {
             this.load.image('sky', 'assets/sky.png');
         }
 
-        function updateClassifica(nome, punteggio) {
-    // Recupera la classifica esistente dal localStorage o inizializza un array vuoto
-    let classifica = JSON.parse(localStorage.getItem('classifica')) || [];
-    
-    // Aggiungi il nuovo punteggio alla classifica
-    classifica.push({ nome: nome, punteggio: punteggio });
-    
-    // Ordina la classifica per punteggio (dal più alto al più basso)
-    classifica.sort((a, b) => b.punteggio - a.punteggio);
-    
-    // Mantieni solo i primi 10 punteggi
-    if (classifica.length > 10) {
-        classifica = classifica.slice(0, 10);
-    }
-    
-    // Salva la classifica aggiornata nel localStorage
-    localStorage.setItem('classifica', JSON.stringify(classifica));
-}
 
 
 
@@ -123,42 +102,11 @@
                 this.scene.start('scene1');
             }, this);
             buttonGraphics.lineStyle(4, 0x000000); // Colore e spessore del bordo
-            var playButtonClassifica = this.add.text(100, 150, 'CLASSIFICA', {
-                font: "50px Georgia",
-                fill: '#ffffff'
-            });
-            playButtonClassifica.setInteractive();
-
-            playButtonClassifica.on('pointerdown', () => {
-                this.scene.start('Classifica');
-            }, this);
+            
         }
         function updateMenu() {
 
         }
-        function preloadClassifica() {
-            // INSERISCI IMMAGINE QUELLO CHE VUOI questo è esempio
-            this.load.image('sky', 'assets/sky.png');
-        }
-        function createClassifica() {
-    sky = this.add.image(0, 0, 'sky').setOrigin(0, 0);
-    sky.displayWidth = this.sys.game.config.width;
-    sky.displayHeight = this.sys.game.config.height;
-
-    const buttonGraphics = this.add.graphics();
-    buttonGraphics.lineStyle(4, 0x000000);
-    var playButtonDietro = this.add.text(100, 400, 'MENU', {
-        font: "50px Georgia",
-        fill: '#ffffff'
-    });
-    playButtonDietro.setInteractive();
-    playButtonDietro.on('pointerdown', () => {
-        this.scene.start('Menu');
-    }, this);
-
-    // Call the function to update the leaderboard
-    updateClassifica.call(this);
-}
 
         function preload() {
             this.load.image('sky', 'assets/sky.png');
@@ -200,8 +148,8 @@
             sky = null;
             playButtonP = null;
             playButtonMenu = null;
-            var tempoInGioco=null;
-            var tempoInGiocoText=null;
+            var tempoInGioco = null;
+            var tempoInGiocoText = null;
             scene = this;
             sky = this.add.image(0, 0, 'sky').setOrigin(0, 0);
             sky.displayWidth = scene.sys.game.config.width;
@@ -256,153 +204,151 @@
             this.physics.add.overlap(player, iconeCura, potereCura, null, this);
         }
         function update() {
-    var time = this.time.now;
+            var time = this.time.now;
 
-    if (gameOver) {
-        if (!playButtonP) {
-            playButtonP = this.add.text(110, 200, 'Play Again', {
-                fontSize: '32px',
-                fill: '#ffffff'
-            });
-            playButtonP.setOrigin(0.5);
-            playButtonP.setInteractive();
+            if (gameOver) {
+                if (!playButtonP) {
+                    playButtonP = this.add.text(110, 200, 'Play Again', {
+                        fontSize: '32px',
+                        fill: '#ffffff'
+                    });
+                    playButtonP.setOrigin(0.5);
+                    playButtonP.setInteractive();
 
-            playButtonP.on('pointerdown', function () {
-                console.log("Play Again button clicked"); // Debug
-                this.scene.start('scene1');
-                resetGame(); // Funzione per resettare lo stato del gioco
-            }, this);
+                    playButtonP.on('pointerdown', function () {
+                        console.log("Play Again button clicked"); // Debug
+                        this.scene.start('scene1');
+                        resetGame(); // Funzione per resettare lo stato del gioco
+                    }, this);
 
-            playButtonMenu = this.add.text(100, 300, 'Menu', { fontSize: '32px', fill: '#ffffff' });
-            playButtonMenu.setOrigin(0.5);
-            playButtonMenu.setInteractive();
+                    playButtonMenu = this.add.text(100, 300, 'Menu', { fontSize: '32px', fill: '#ffffff' });
+                    playButtonMenu.setOrigin(0.5);
+                    playButtonMenu.setInteractive();
 
-            playButtonMenu.on('pointerdown', function () {
-                console.log("Menu button clicked"); // Debug
-                this.scene.start('Menu');
-            }, this);
-        }
-        return;
-    }
-
-    if (bossFinale) {
-        if (bossFinale.vita <= 0) {
-            // Aggiorna la classifica
-            onBossDefeated.call(this); // Assicurati che `this` sia la scena corrente
-
-            // Distruggi il boss e pulisci la variabile
-            bossFinale.destroy();
-            bossFinale = null;
-
-            // Vai al menu principale
-            console.log("Boss defeated, returning to menu");
-            this.scene.start('Menu');
-            return;
-        }
-
-        // Gestisci il movimento del boss
-        if (!bossFinale.limite) {
-            if (bossFinale.x >= bossFinale.enemyX-2.5) {
-                bossFinale.setVelocity(100, 70);
-            } else {
-                bossFinale.setVelocity(100, -70);
+                    playButtonMenu.on('pointerdown', function () {
+                        console.log("Menu button clicked"); // Debug
+                        this.scene.start('Menu');
+                    }, this);
+                }
+                return;
             }
-            if (bossFinale.x >= bossFinale.enemyX + 100) {
-                bossFinale.limite = true;
-            }
-        } else {
-            if (bossFinale.x <= bossFinale.enemyX+2.5) {
-                bossFinale.setVelocity(-100, 70);
-            } else {
-                bossFinale.setVelocity(-100, -70);
-            }
-            if (bossFinale.x <= bossFinale.enemyX - 100) {
-                bossFinale.limite = false;
-            }
-        }
 
-        // Gestisci i proiettili del boss
-        if (time - bossFinale.timeEnemy > 950) {
-            var proiettile_bossFinale = proiettili_bossFinale.create(bossFinale.x, bossFinale.y + 30, 'proiettile').setAngle(180);
-            proiettile_bossFinale.setVelocityY(400);
-            bossFinale.timeEnemy = time;
-        }
-        this.physics.add.overlap(player, proiettili_bossFinale, dannoGiocatore, null, this);
-        this.physics.add.overlap(proiettili, bossFinale, dannoBoss, null, this);
-    }
+            if (bossFinale) {
+                if (bossFinale.vita <= 0) {
 
-    // Gestisci il movimento e il comportamento dei nemici
-    enemies.children.iterate(function (enemy) {
-        if (time - enemy.timeEnemy > 1500) {
-            var proiettile_enemy = proiettili_enemy.create(enemy.x, enemy.y + 30, 'colpo').setAngle(-90);
-            if (livello >= 6) {
-                scene.time.delayedCall(500, () => {
+                    // Distruggi il boss e pulisci la variabile
+                    bossFinale.destroy();
+                    bossFinale = null;
+
+                    // Vai al menu principale
+                    console.log("Boss defeated, returning to menu");
+                    this.scene.start('Menu');
+                    return;
+                }
+
+                // Gestisci il movimento del boss
+                if (!bossFinale.limite) {
+                    if (bossFinale.x >= bossFinale.enemyX - 2.5) {
+                        bossFinale.setVelocity(100, 70);
+                    } else {
+                        bossFinale.setVelocity(100, -70);
+                    }
+                    if (bossFinale.x >= bossFinale.enemyX + 100) {
+                        bossFinale.limite = true;
+                    }
+                } else {
+                    if (bossFinale.x <= bossFinale.enemyX + 2.5) {
+                        bossFinale.setVelocity(-100, 70);
+                    } else {
+                        bossFinale.setVelocity(-100, -70);
+                    }
+                    if (bossFinale.x <= bossFinale.enemyX - 100) {
+                        bossFinale.limite = false;
+                    }
+                }
+
+                // Gestisci i proiettili del boss
+                if (time - bossFinale.timeEnemy > 950) {
+                    var proiettile_bossFinale = proiettili_bossFinale.create(bossFinale.x, bossFinale.y + 30, 'proiettile').setAngle(180);
+                    proiettile_bossFinale.setVelocityY(400);
+                    bossFinale.timeEnemy = time;
+                }
+                this.physics.add.overlap(player, proiettili_bossFinale, dannoGiocatore, null, this);
+                this.physics.add.overlap(proiettili, bossFinale, dannoBoss, null, this);
+            }
+
+            // Gestisci il movimento e il comportamento dei nemici
+            enemies.children.iterate(function (enemy) {
+                if (time - enemy.timeEnemy > 1500) {
                     var proiettile_enemy = proiettili_enemy.create(enemy.x, enemy.y + 30, 'colpo').setAngle(-90);
+                    if (livello >= 6) {
+                        scene.time.delayedCall(500, () => {
+                            var proiettile_enemy = proiettili_enemy.create(enemy.x, enemy.y + 30, 'colpo').setAngle(-90);
+                            proiettile_enemy.setVelocityY(300);
+                            enemy.timeEnemy = time;
+                        });
+                    }
                     proiettile_enemy.setVelocityY(300);
                     enemy.timeEnemy = time;
+                }
+
+                // Gestisci il movimento dei nemici
+                if (!enemy.limite) {
+                    enemy.setVelocityX(100);
+                    if (enemy.body.x >= enemy.enemyX + 50) {
+                        enemy.limite = true;
+                    }
+                } else {
+                    enemy.setVelocityX(-100);
+                    if (enemy.body.x <= enemy.enemyX - 50) {
+                        enemy.limite = false;
+                    }
+                }
+            });
+
+            // Gestisci il fuoco del giocatore
+            if (cursors.space.isDown && time - ultimocolpo >= firerate) {
+                var proiettile = proiettili.create(player.x, player.y - 40, 'colpo').setAngle(-90);
+                proiettile.setVelocityY(-300);
+                ultimocolpo = time;
+            }
+
+            // Gestisci il movimento del giocatore
+            if (cursors.left.isDown) {
+                player.setVelocityX(-200);
+                scudi.children.iterate(function (prova) {
+                    prova.x = player.x;
+                });
+            } else if (cursors.right.isDown) {
+                player.setVelocityX(200);
+                scudi.children.iterate(function (prova) {
+                    prova.x = player.x;
+                });
+            } else {
+                player.setVelocityX(0);
+                scudi.children.iterate(function (prova) {
+                    prova.x = player.x;
                 });
             }
-            proiettile_enemy.setVelocityY(300);
-            enemy.timeEnemy = time;
         }
 
-        // Gestisci il movimento dei nemici
-        if (!enemy.limite) {
-            enemy.setVelocityX(100);
-            if (enemy.body.x >= enemy.enemyX + 50) {
-                enemy.limite = true;
+
+        function resetGame() {
+            // Funzione per resettare lo stato del gioco
+            gameOver = false;
+            player.setPosition(100, 100); // Ripristina la posizione del giocatore, se necessario
+            lives = 3; // Ripristina il numero di vite
+            livesText.setText('lives: ' + lives);
+            numeroNemici = 0; // Ripristina il numero di nemici
+            enemies.clear(true, true); // Elimina tutti i nemici esistenti
+            proiettili.clear(true, true); // Elimina tutti i proiettili esistenti
+            proiettili_bossFinale.clear(true, true); // Elimina i proiettili del boss
+            if (bossFinale) {
+                bossFinale.destroy();
+                bossFinale = null;
             }
-        } else {
-            enemy.setVelocityX(-100);
-            if (enemy.body.x <= enemy.enemyX - 50) {
-                enemy.limite = false;
-            }
+            creaNemici(150.5, 50, 0); // Crea nuovi nemici come esempio
         }
-    });
-
-    // Gestisci il fuoco del giocatore
-    if (cursors.space.isDown && time - ultimocolpo >= firerate) {
-        var proiettile = proiettili.create(player.x, player.y - 40, 'colpo').setAngle(-90);
-        proiettile.setVelocityY(-300);
-        ultimocolpo = time;
-    }
-
-    // Gestisci il movimento del giocatore
-    if (cursors.left.isDown) {
-        player.setVelocityX(-200);
-        scudi.children.iterate(function (prova) {
-            prova.x = player.x;
-        });
-    } else if (cursors.right.isDown) {
-        player.setVelocityX(200);
-        scudi.children.iterate(function (prova) {
-            prova.x = player.x;
-        });
-    } else {
-        player.setVelocityX(0);
-        scudi.children.iterate(function (prova) {
-            prova.x = player.x;
-        });
-    }
-}
-
-
-function resetGame() {
-    // Funzione per resettare lo stato del gioco
-    gameOver = false;
-    player.setPosition(100, 100); // Ripristina la posizione del giocatore, se necessario
-    lives = 3; // Ripristina il numero di vite
-    livesText.setText('lives: ' + lives);
-    numeroNemici = 0; // Ripristina il numero di nemici
-    enemies.clear(true, true); // Elimina tutti i nemici esistenti
-    proiettili.clear(true, true); // Elimina tutti i proiettili esistenti
-    proiettili_bossFinale.clear(true, true); // Elimina i proiettili del boss
-    if (bossFinale) {
-        bossFinale.destroy();
-        bossFinale = null;
-    }
-    creaNemici(150.5, 50, 0); // Crea nuovi nemici come esempio
-}
         function dannoNemico(enemy, proiettile) {
             if (livello < 4 || enemy.vita <= 1) {
                 enemy.destroy();
@@ -413,7 +359,7 @@ function resetGame() {
             }
             proiettile.destroy();
             if (numeroNemici == 0) {
-                livello++;
+                livello+=9;
             }
             if (enemy.drop && enemy.vita == 0) {
                 if (numeroInteroCasualePotenziamento == 0) {
@@ -502,110 +448,74 @@ function resetGame() {
                 creaNemici(350, 100, 3);
             }
             if (numeroNemici <= 0 && livello == 10) {
-                creaBoss(330,125);
+                creaBoss(330, 125);
             }
 
         }
-function dannoGiocatore(player, proiettile) {
-    if (lives <= 1) {
-        player.destroy();
-        gameOver = true;
-    }
-        lives--;
-        proiettile.destroy();
-        livesText.setText('Lives: ' + lives);
-}
-function scudoProtettivo(scudo, proiettile) {
-    proiettile.destroy();
-}
-function potenziamentoScudo(player, icona) {
-    icona.destroy();
-    let shield = scene.physics.add.sprite(player.x, player.y - 35, 'scudo')
-        .setScale(1.5)
-        .play('Scudo');
-    scudi.add(shield);
-    
-    scene.time.delayedCall(4500, () => shield.destroy());
-}
-function creaNemici(x, y, n) {
-    let enemy = scene.physics.add.sprite(x, y, 'nemico').setScale(0.5);
-    enemy.enemyX = enemy.body.x;
-    enemy.timeEnemy = -1000;
-    if (livello < 7) {
-        enemy.vita = 2;
-    } else if (livello >= 7 && livello <= 9) {
-        enemy.vita = 4;
-    }
-    enemy.drop = (n === numeroInteroCasuale);
+        function dannoGiocatore(player, proiettile) {
+            if (lives <= 1) {
+                player.destroy();
+                gameOver = true;
+            }
+            lives--;
+            proiettile.destroy();
+            livesText.setText('Lives: ' + lives);
+        }
+        function scudoProtettivo(scudo, proiettile) {
+            proiettile.destroy();
+        }
+        function potenziamentoScudo(player, icona) {
+            icona.destroy();
+            let shield = scene.physics.add.sprite(player.x, player.y - 35, 'scudo').setScale(1.5).play('Scudo');
+            scudi.add(shield);
+            scene.time.delayedCall(4500, () => shield.destroy());
+        }
+        function creaNemici(x, y, n) {
+            let enemy = scene.physics.add.sprite(x, y, 'nemico').setScale(0.5);
+            enemy.enemyX = enemy.body.x;
+            enemy.timeEnemy = -1000;
+            if (livello < 7) {
+                enemy.vita = 2;
+            } else if (livello >= 7 && livello <= 9) {
+                enemy.vita = 4;
+            }
+            enemy.drop = (n === numeroInteroCasuale);
 
-    enemies.add(enemy);
-    numeroNemici++;
-}
-function mitragliatrice(player, icona) {
-    icona.destroy();
-    firerate = 150;
-    
-    scene.time.delayedCall(2000, () => {
-        firerate = 350;
-    });
-}
-function potereCura(player, icona) {
-    icona.destroy();
-    lives++;
-    livesText.setText('Lives: ' + lives);
-}
-function creaBoss(x, y) {
-    bossFinale = scene.physics.add.sprite(x, y, 'boss').setScale(1.75).setAngle(180);
-    bossFinale.enemyX = bossFinale.body.x;
-    bossFinale.timeEnemy = -1000;
-    bossFinale.vita = 25;
-    bossFinale.limite = false;  // Property for movement limits
-}
-function dannoBoss(boss, proiettile) {
-    boss.vita -= 1; // Adjust damage value if needed
-    proiettile.destroy();
-    
-    if (boss.vita <= 0) {
-        boss.destroy();
-    }
-}
+            enemies.add(enemy);
+            numeroNemici++;
+        }
+        function mitragliatrice(player, icona) {
+            icona.destroy();
+            firerate = 150;
 
+            scene.time.delayedCall(2000, () => {
+                firerate = 350;
+            });
+        }
+        function potereCura(player, icona) {
+            icona.destroy();
+            lives++;
+            livesText.setText('Lives: ' + lives);
+        }
+        function creaBoss(x, y) {
+            bossFinale = scene.physics.add.sprite(x, y, 'boss').setScale(1.75).setAngle(180);
+            bossFinale.enemyX = bossFinale.body.x;
+            bossFinale.timeEnemy = -1000;
+            bossFinale.vita = 25;
+            bossFinale.limite = false;  // Property for movement limits
+        }
+        function dannoBoss(boss, proiettile) {
+            boss.vita -= 1; // Adjust damage value if needed
+            proiettile.destroy();
 
-function handleBossDefeat(scene, nome, punteggio) {
-    console.log('handleBossDefeat chiamata con:', nome, punteggio);
-    updateClassifica(nome, punteggio);
-    // scene.scene.start('Menu'); // Usa il contesto di scena passato
-}
-
-function onBossDefeated() {
-    let nomeGiocatore = 'NomeGiocatore';  // Cambia con il nome effettivo del giocatore
-    let punteggioGiocatore = 1000;       // Cambia con il punteggio effettivo del giocatore
-
-    // Passa `this` (la scena) a `handleBossDefeat`
-    handleBossDefeat(this, nomeGiocatore, punteggioGiocatore);
-}
+            if (boss.vita <= 0) {
+                boss.destroy();
+            }
+        }
 
 
 
-function onBossDefeated() {
-    let nomeGiocatore = 'NomeGiocatore';  // Cambia con il nome effettivo del giocatore
-    let punteggioGiocatore = 1000;       // Cambia con il punteggio effettivo del giocatore
-
-    // Passa `this` (la scena) a `handleBossDefeat`
-    handleBossDefeat(this, nomeGiocatore, punteggioGiocatore);
-}
-
-
-function aggiornaClassifica() {
-    let nomeGiocatore = 'NomeGiocatore';  // Cambia con il nome effettivo del giocatore
-    let punteggioGiocatore = 1000;       // Cambia con il punteggio effettivo del giocatore
-
-    // Chiama la funzione per gestire la sconfitta del boss
-    handleBossDefeat.call(this, nomeGiocatore, punteggioGiocatore);
-}
-onBossDefeated.call(this);
-
-
+        
 
 
     </script>
