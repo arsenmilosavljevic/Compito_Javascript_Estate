@@ -84,9 +84,26 @@
         game.scene.start("Menu");
         function preloadMenu() {
             this.load.image('sky', 'assets/sky.png');
+            
         }
 
-
+        function preload() {
+            this.load.image('sky', 'assets/sky.png');
+            this.load.spritesheet('scudo', 'assets/Scudo.png', { frameWidth: 64, frameHeight: 64 });
+            this.load.spritesheet('anim_scudo', 'assets/AnimScudo.png', { frameWidth: 160, frameHeight: 160 });
+            this.load.image('colpo', 'assets/proiettile.png');
+            this.load.image('navicella', 'assets/Idle.png');
+            this.load.image('nemico', 'assets/nemico.png');
+            this.load.spritesheet('anim_torretta', 'assets/AnimTorretta.png', { frameWidth: 32, frameHeight: 32 });
+            this.load.spritesheet('anim_cura', 'assets/AnimCura.png', { frameWidth: 360, frameHeight: 360 });
+            this.load.image('boss', 'assets/BossFinale.png');
+            this.load.image('proiettile', 'assets/onda.png');
+            this.load.audio('sottofondo1', 'assets/BackGroundMusic.mp3');
+            this.load.audio('sparo', 'assets/proiettile.mp3');
+            this.load.audio('onda', 'assets/ondaBoss.mp3');
+            this.load.audio('laserNemici', 'assets/laserNemici.mp3');
+            this.load.audio('GameOver', 'assets/game-over.mp3');
+        }
 
 
         function createMenu() {
@@ -102,28 +119,16 @@
                 this.scene.start('scene1');
             }, this);
             buttonGraphics.lineStyle(4, 0x000000); // Colore e spessore del bordo
+
+            
+            
             
         }
         function updateMenu() {
 
         }
 
-        function preload() {
-            this.load.image('sky', 'assets/sky.png');
-            this.load.spritesheet('scudo', 'assets/Scudo.png', { frameWidth: 64, frameHeight: 64 });
-            this.load.spritesheet('anim_scudo', 'assets/AnimScudo.png', { frameWidth: 160, frameHeight: 160 });
-            this.load.image('colpo', 'assets/proiettile.png');
-            this.load.image('navicella', 'assets/Idle.png');
-            this.load.image('nemico', 'assets/nemico.png');
-            this.load.spritesheet('anim_torretta', 'assets/AnimTorretta.png', { frameWidth: 32, frameHeight: 32 });
-            this.load.spritesheet('anim_cura', 'assets/AnimCura.png', { frameWidth: 360, frameHeight: 360 });
-            this.load.image('boss', 'assets/BossFinale.png');
-            this.load.image('proiettile', 'assets/onda.png');
-            this.load.audio('sottofondo', 'assets/BackGroundMusic.mp3');
-            this.load.audio('sparo', 'assets/proiettile.mp3');
-            this.load.audio('onda', 'assets/ondaBoss.mp3');
-            this.load.audio('laserNemici', 'assets/laserNemici.mp3');
-        }
+        
         function create() {
             numeroNemici = 0;
             limite = false;
@@ -155,7 +160,7 @@
             var tempoInGioco = null;
             var tempoInGiocoText = null;
             scene = this;
-            this.sound.play('sottofondo',{loop:true, volume: 0.03});
+            this.sound.play('sottofondo1',{loop:true, volume: 0.03});
             sky = this.add.image(0, 0, 'sky').setOrigin(0, 0);
             sky.displayWidth = scene.sys.game.config.width;
             sky.displayHeight = scene.sys.game.config.height;
@@ -234,6 +239,8 @@
                         console.log("Menu button clicked"); // Debug
                         this.scene.start('Menu');
                     }, this);
+
+                    this.sound.play('GameOver',{volume:0.09});
                 }
                 return;
             }
