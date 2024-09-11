@@ -119,6 +119,10 @@
             this.load.spritesheet('anim_cura', 'assets/AnimCura.png', { frameWidth: 360, frameHeight: 360 });
             this.load.image('boss', 'assets/BossFinale.png');
             this.load.image('proiettile', 'assets/onda.png');
+            this.load.audio('sottofondo', 'assets/BackGroundMusic.mp3');
+            this.load.audio('sparo', 'assets/proiettile.mp3');
+            this.load.audio('onda', 'assets/ondaBoss.mp3');
+            this.load.audio('laserNemici', 'assets/laserNemici.mp3');
         }
         function create() {
             numeroNemici = 0;
@@ -151,6 +155,7 @@
             var tempoInGioco = null;
             var tempoInGiocoText = null;
             scene = this;
+            this.sound.play('sottofondo',{loop:true, volume: 0.03});
             sky = this.add.image(0, 0, 'sky').setOrigin(0, 0);
             sky.displayWidth = scene.sys.game.config.width;
             sky.displayHeight = scene.sys.game.config.height;
@@ -268,10 +273,11 @@
                 }
 
                 // Gestisci i proiettili del boss
-                if (time - bossFinale.timeEnemy > 950) {
+                if (time - bossFinale.timeEnemy > Math.random()*(1800-700)+1000) {
                     var proiettile_bossFinale = proiettili_bossFinale.create(bossFinale.x, bossFinale.y + 30, 'proiettile').setAngle(180);
                     proiettile_bossFinale.setVelocityY(400);
                     bossFinale.timeEnemy = time;
+                    scene.sound.play('onda',{volume:0.07});
                 }
                 this.physics.add.overlap(player, proiettili_bossFinale, dannoGiocatore, null, this);
                 this.physics.add.overlap(proiettili, bossFinale, dannoBoss, null, this);
@@ -279,17 +285,20 @@
 
             // Gestisci il movimento e il comportamento dei nemici
             enemies.children.iterate(function (enemy) {
-                if (time - enemy.timeEnemy > 1500) {
+                if (time - enemy.timeEnemy > Math.random()*(2500-700)+1000) {
                     var proiettile_enemy = proiettili_enemy.create(enemy.x, enemy.y + 30, 'colpo').setAngle(-90);
                     if (livello >= 6) {
                         scene.time.delayedCall(500, () => {
                             var proiettile_enemy = proiettili_enemy.create(enemy.x, enemy.y + 30, 'colpo').setAngle(-90);
                             proiettile_enemy.setVelocityY(300);
                             enemy.timeEnemy = time;
+                            scene.sound.play('laserNemici',{volume:0.09});
                         });
                     }
+                    
                     proiettile_enemy.setVelocityY(300);
                     enemy.timeEnemy = time;
+                    scene.sound.play('laserNemici',{volume:0.09});
                 }
 
                 // Gestisci il movimento dei nemici
@@ -311,6 +320,7 @@
                 var proiettile = proiettili.create(player.x, player.y - 40, 'colpo').setAngle(-90);
                 proiettile.setVelocityY(-300);
                 ultimocolpo = time;
+                this.sound.play('sparo',{volume:0.025});
             }
 
             // Gestisci il movimento del giocatore
@@ -359,7 +369,7 @@
             }
             proiettile.destroy();
             if (numeroNemici == 0) {
-                livello+=9;
+                livello++;
             }
             if (enemy.drop && enemy.vita == 0) {
                 if (numeroInteroCasualePotenziamento == 0) {
