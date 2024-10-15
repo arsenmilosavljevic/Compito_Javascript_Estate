@@ -25,6 +25,11 @@
             create: createMenu,
             update: updateMenu
         }
+        var Classifica = {
+            preload: preloadClassifica,
+            create: createClassifica,
+            update: updateClassifica
+        };
         var config = {
             type: Phaser.AUTO,
             width: 550,
@@ -50,6 +55,8 @@
         var ultimocolpo = -100;
         var cursors;
         var lives = 3;
+        var score = 0;
+        var scoreText;
         var gameOver = false;
         var livesText;
         var enemies;
@@ -72,6 +79,8 @@
         var bossFinale;
         var tempoInGioco;
         var tempoInGiocoText;
+        var nomeGiocatore = null;
+        var punteggiPrecedenti = [];
 
         let inputText = '';  // Variabile per tenere traccia del nome inserito
         let nameText;
@@ -81,10 +90,16 @@
         var game = new Phaser.Game(config);
         game.scene.add("Menu", Menu);
         game.scene.add("scene1", scene1);
+        game.scene.add("Classifica", Classifica);
         game.scene.start("Menu");
         function preloadMenu() {
             this.load.image('sky', 'assets/sky.png');
-            
+
+        }
+
+        function preloadClassifica() {
+            this.load.image('sky', 'assets/sky.png');
+
         }
 
         function preload() {
@@ -105,6 +120,8 @@
             this.load.audio('GameOver', 'assets/game-over.mp3');
         }
 
+        function preloadClassifica() {
+        }
 
         function createMenu() {
             sky = this.add.image(0, 0, 'sky').setOrigin(0, 0);
@@ -120,16 +137,68 @@
             }, this);
             buttonGraphics.lineStyle(4, 0x000000); // Colore e spessore del bordo
 
-            
-            
-            
+            var classificaButton = this.add.text(100, 120, 'CLASSIFICA', {
+                font: "40px Georgia",
+                fill: '#ffffff',
+            });
+            classificaButton.setInteractive();
+            classificaButton.on('pointerdown', () => {
+                this.scene.start('Classifica');
+            }, this);
         }
+
+        function updateClassifica() {
+
+        }
+
         function updateMenu() {
 
         }
 
-        
+        function createClassifica() {
+            // Crea la classifica e la visualizza sullo schermo
+            let classifica = [];
+
+            // Utilizza il nome del giocatore memorizzato
+            let giocatore = {
+                nome: nomeGiocatore,
+                tempo: (this.time.now - tempoInGioco) / 1000,
+                punteggio: score,
+                livello: livello
+            };
+
+            // Aggiungi il nuovo punteggio alla lista dei punteggi precedenti
+            punteggiPrecedenti.push(giocatore);
+
+            // Ordina la lista dei punteggi precedenti in base al punteggio
+            punteggiPrecedenti.sort((a, b) => b.punteggio - a.punteggio);
+
+            // Visualizza solo i 6 migliori punteggi
+            let datiClassifica = '';
+            for (let i = 0; i < Math.min(6, punteggiPrecedenti.length); i++) {
+                datiClassifica += `${i + 1}. ${punteggiPrecedenti[i].nome} - Tempo: ${punteggiPrecedenti[i].tempo.toFixed(2)}s - Punteggio: ${punteggiPrecedenti[i].punteggio} - Livello: ${punteggiPrecedenti[i].livello}\n`;
+            }
+
+            let classificaText = this.add.text(100, 100, 'Classifica:', { fontSize: '32px', fill: '#ffffff' });
+            classificaText.setOrigin(0.5);
+
+            let datiClassificaText = this.add.text(100, 250, datiClassifica, { fontSize: '24px', fill: '#ffffff' });
+            datiClassificaText.setOrigin(0.5);
+
+            // Aggiungi un pulsante per tornare al menu
+            let tornaAlMenuButton = this.add.text(100, 300, 'Torna al menu', { fontSize: '24px', fill: '#ffffff' });
+            tornaAlMenuButton.setInteractive();
+            tornaAlMenuButton.on('pointerdown', () => {
+                this.scene.start('Menu');
+            }, this);
+        }
+
+        function updateClassifica() {
+        }
+
+
         function create() {
+            tempoInGioco = this.time.now;
             numeroNemici = 0;
             limite = false;
             enemyX = null;
@@ -160,7 +229,7 @@
             var tempoInGioco = null;
             var tempoInGiocoText = null;
             scene = this;
-            this.sound.play('sottofondo1',{loop:true, volume: 0.03});
+            this.sound.play('sottofondo1', { loop: true, volume: 0.03 });
             sky = this.add.image(0, 0, 'sky').setOrigin(0, 0);
             sky.displayWidth = scene.sys.game.config.width;
             sky.displayHeight = scene.sys.game.config.height;
@@ -173,6 +242,7 @@
             player.setOffset(70, 45)
             player.setCollideWorldBounds(true);
             livesText = this.add.text(370, 530, 'Lives: ' + lives, { fontSize: '40px', fill: '#ffffff', stroke: '#000', strokeThickness: 2 }).setScale(0.85);
+            scoreText = this.add.text(30, 530, 'Score: ' + score, { fontSize: '40px', fill: '#ffffff', stroke: '#000', strokeThickness: 2 }).setScale(0.85);
             enemies = this.physics.add.group();
             creaNemici(150.5, 50);
             creaNemici(450, 50);
@@ -236,11 +306,10 @@
                     playButtonMenu.setInteractive();
 
                     playButtonMenu.on('pointerdown', function () {
-                        console.log("Menu button clicked"); // Debug
                         this.scene.start('Menu');
                     }, this);
 
-                    this.sound.play('GameOver',{volume:0.09});
+                    this.sound.play('GameOver', { volume: 0.09 });
                 }
                 return;
             }
@@ -280,11 +349,11 @@
                 }
 
                 // Gestisci i proiettili del boss
-                if (time - bossFinale.timeEnemy > Math.random()*(1800-700)+1000) {
+                if (time - bossFinale.timeEnemy > Math.random() * (1800 - 700) + 1000) {
                     var proiettile_bossFinale = proiettili_bossFinale.create(bossFinale.x, bossFinale.y + 30, 'proiettile').setAngle(180);
                     proiettile_bossFinale.setVelocityY(400);
                     bossFinale.timeEnemy = time;
-                    scene.sound.play('onda',{volume:0.07});
+                    scene.sound.play('onda', { volume: 0.07 });
                 }
                 this.physics.add.overlap(player, proiettili_bossFinale, dannoGiocatore, null, this);
                 this.physics.add.overlap(proiettili, bossFinale, dannoBoss, null, this);
@@ -292,20 +361,20 @@
 
             // Gestisci il movimento e il comportamento dei nemici
             enemies.children.iterate(function (enemy) {
-                if (time - enemy.timeEnemy > Math.random()*(2500-700)+1000) {
+                if (time - enemy.timeEnemy > Math.random() * (2500 - 700) + 1000) {
                     var proiettile_enemy = proiettili_enemy.create(enemy.x, enemy.y + 30, 'colpo').setAngle(-90);
                     if (livello >= 6) {
                         scene.time.delayedCall(500, () => {
                             var proiettile_enemy = proiettili_enemy.create(enemy.x, enemy.y + 30, 'colpo').setAngle(-90);
                             proiettile_enemy.setVelocityY(300);
                             enemy.timeEnemy = time;
-                            scene.sound.play('laserNemici',{volume:0.09});
+                            scene.sound.play('laserNemici', { volume: 0.09 });
                         });
                     }
-                    
+
                     proiettile_enemy.setVelocityY(300);
                     enemy.timeEnemy = time;
-                    scene.sound.play('laserNemici',{volume:0.09});
+                    scene.sound.play('laserNemici', { volume: 0.09 });
                 }
 
                 // Gestisci il movimento dei nemici
@@ -327,7 +396,7 @@
                 var proiettile = proiettili.create(player.x, player.y - 40, 'colpo').setAngle(-90);
                 proiettile.setVelocityY(-300);
                 ultimocolpo = time;
-                this.sound.play('sparo',{volume:0.025});
+                this.sound.play('sparo', { volume: 0.025 });
             }
 
             // Gestisci il movimento del giocatore
@@ -347,6 +416,9 @@
                     prova.x = player.x;
                 });
             }
+            if (gameOver || (bossFinale && bossFinale.vita <= 0)) {
+                creaClassifica();
+            }
         }
 
 
@@ -355,7 +427,9 @@
             gameOver = false;
             player.setPosition(100, 100); // Ripristina la posizione del giocatore, se necessario
             lives = 3; // Ripristina il numero di vite
-            livesText.setText('lives: ' + lives);
+            score = 0;
+            livesText.setText('Lives: ' + lives);
+            scoreText.setText('Score: ' + score);
             numeroNemici = 0; // Ripristina il numero di nemici
             enemies.clear(true, true); // Elimina tutti i nemici esistenti
             proiettili.clear(true, true); // Elimina tutti i proiettili esistenti
@@ -369,12 +443,17 @@
         function dannoNemico(enemy, proiettile) {
             if (livello < 4 || enemy.vita <= 1) {
                 enemy.destroy();
+                score += 10;
+                scoreText.setText('Score: ' + score);
                 numeroNemici--;
                 enemy.vita = 0;
             } else {
                 enemy.vita--;
+                score += 10;
+                scoreText.setText('Score: ' + score);
             }
             proiettile.destroy();
+
             if (numeroNemici == 0) {
                 livello++;
             }
@@ -409,7 +488,6 @@
                 var n = 6; // Limite massimo (non incluso)
                 numeroInteroCasuale = Math.floor(Math.random() * n);
                 numeroInteroCasualePotenziamento = Math.floor(Math.random() * 3);
-                console.log(numeroInteroCasuale);
                 creaNemici(150.5, 50, 0);
                 creaNemici(450, 50, 1);
                 creaNemici(232.5, 100, 2);
@@ -476,7 +554,14 @@
             }
             lives--;
             proiettile.destroy();
+            if (score > 0) {
+                score -= 5;
+            } else {
+                score = 0;
+            }
+
             livesText.setText('Lives: ' + lives);
+            scoreText.setText('Score: ' + score);
         }
         function scudoProtettivo(scudo, proiettile) {
             proiettile.destroy();
@@ -519,22 +604,17 @@
             bossFinale.enemyX = bossFinale.body.x;
             bossFinale.timeEnemy = -1000;
             bossFinale.vita = 25;
-            bossFinale.limite = false;  // Property for movement limits
+            bossFinale.limite = false;  
         }
         function dannoBoss(boss, proiettile) {
-            boss.vita -= 1; // Adjust damage value if needed
+            boss.vita -= 1; 
             proiettile.destroy();
 
             if (boss.vita <= 0) {
                 boss.destroy();
+                score += 70;
             }
         }
-
-
-
-        
-
-
     </script>
 
 </body>
